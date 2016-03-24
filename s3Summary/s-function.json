@@ -5,8 +5,8 @@
   "customName": false,
   "customRole": false,
   "handler": "handler.handler",
-  "timeout": 6,
-  "memorySize": 1024,
+  "timeout": 60,
+  "memorySize": 128,
   "authorizer": {},
   "custom": {
     "excludePatterns": []
@@ -14,10 +14,11 @@
   "endpoints": [],
   "events": [
     {
-      "name": "mySchedule",
+      "name": "daily",
       "type": "schedule",
       "config": {
-        "schedule": "rate(5 minutes)"
+        "enabled": true,
+        "schedule": "cron(0 15 * * ? *)"
       }
     }
   ],

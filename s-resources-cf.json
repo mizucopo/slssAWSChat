@@ -39,6 +39,15 @@
                 "logs:PutLogEvents"
               ],
               "Resource": "arn:aws:logs:${region}:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket",
+                "s3:ListAllMyBuckets",
+                "s3:GetObject"
+              ],
+              "Resource": "arn:aws:s3:::*"
             }
           ]
         },
