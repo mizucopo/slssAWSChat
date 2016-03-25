@@ -1,11 +1,6 @@
 'use strict';
 
-var SLACK_CHANNEL  = "";
-var SLACK_ENDPOINT = "";
-
 var AWS = require('aws-sdk');
-var URL = require('url');
-var HTTPS = require('https');
 var Promise = require('bluebird');
 
 module.exports.handler = function(event, context) {
@@ -16,15 +11,19 @@ module.exports.handler = function(event, context) {
       var s3 = new AWS.S3({});
       s3.listBuckets(function(err, data) {
         if (err) {
-          reject(new Error(err.message));
-          return ;
+          return reject(new Error(err.message));
         }
         var methods = [];
+        data['Buckets'].sort(function(a, b) {
+          if (a['Name'] < b['Name']) return -1;
+          if (a['Name'] > b['Name']) return 1;
+          return 0;
+        });
         data['Buckets'].forEach(function(bucket) {
           methods.push(taskGetObjectsSize(s3, bucket));
         });
         Promise.all(methods).then(function(values) {
-          resolve(values);
+          return resolve(values);
         });
       });
     });
@@ -38,8 +37,7 @@ module.exports.handler = function(event, context) {
       };
       s3.listObjects(params, function(err, data) {
         if (err) {
-          reject(new Error(err.message));
-          return ;
+          return reject(new Error(err.message));
         }
         var results = {
           Bucket: bucket['Name'],
@@ -50,16 +48,14 @@ module.exports.handler = function(event, context) {
           results['Count']++;
           results['Size'] += content['Size'];
         });
-        resolve(results);
+        return resolve(results);
       });
     });
   };
 
   // 投稿するメッセージを取得
   var getMessage = function(buckets) {
-    var numberFormat = function(num) {
-      return String(num).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-    };
+    var numberFormat = require('./number_format.js');
 
     var message = "";
     var objectsCount = 0;
@@ -84,57 +80,30 @@ module.exports.handler = function(event, context) {
   };
 
   // メッセージを投稿します
-  var taskPostMessage = function(message) {
-    return new Promise(function(resolve, reject) {
-      var body = JSON.stringify({
-        channel: SLACK_CHANNEL,
-        text: message
-      });
-      var options = URL.parse(SLACK_ENDPOINT);
-      options.method = 'POST';
-      options.headers = {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-      };
-      var request = HTTPS.request(options, function(response) {
-          var chunks = [];
-          response.setEncoding('utf8');
-          response.on('data', function(chunk) {
-            chunks.push(chunk);
-          });
-          response.on('end', function() {
-              var body = chunks.join('');
-              if (response.statusCode < 400) {
-                resolve();
-              } else {
-                reject(new Error(body));
-              }
-          });
-      });
-      request.write(body);
-      request.end();
-    });
-  };
+  var taskPostMessage = require('./slack.js');
 
 
   // メイン処理
-  taskGetBucketsSize().then(
-    function(buckets) {
-      var message = getMessage(buckets);
-      taskPostMessage(message).then(
-        function(result) {
-          return context.succeed({
-            "status": 200,
-            "message": "succeed"
-          });
-        },
-        function(err) {
-          return context.fail(err);
-        }
-      );
-    },
-    function(err) {
-      return context.fail(err);
-    }
-  );
+  var main = function() {
+    taskGetBucketsSize().then(
+      function(buckets) {
+        var endpoint = process.env.SLACK_ENDPOINT;
+        var channel  = process.env.SLACK_CHANNEL;
+        var message  = getMessage(buckets);
+        taskPostMessage(endpoint, channel, message).then(
+          function(result) {
+            return context.succeed({
+              "status": 200,
+              "message": "succeed"
+            });
+          }
+        );
+      },
+      function(err) {
+        return context.fail(err);
+      }
+    );
+  };
+
+  main();
 };
