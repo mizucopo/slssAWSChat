@@ -14,10 +14,11 @@
   "endpoints": [],
   "events": [
     {
-      "name": "mySchedule",
+      "name": "daily",
       "type": "schedule",
       "config": {
-        "schedule": "rate(5 minutes)"
+        "enabled": true,
+        "schedule": "cron(0 15 * * ? *)"
       }
     }
   ],
