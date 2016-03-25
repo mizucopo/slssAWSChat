@@ -4,8 +4,6 @@ var SLACK_CHANNEL  = "";
 var SLACK_ENDPOINT = "";
 
 var AWS = require('aws-sdk');
-var URL = require('url');
-var HTTPS = require('https');
 var Promise = require('bluebird');
 
 module.exports.handler = function(event, context) {
@@ -55,9 +53,7 @@ module.exports.handler = function(event, context) {
 
   // 投稿するメッセージを取得
   var getMessage = function(buckets) {
-    var numberFormat = function(num) {
-      return String(num).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-    };
+    var numberFormat = require('./number_format.js');
 
     var message = "";
     var objectsCount = 0;
@@ -82,45 +78,17 @@ module.exports.handler = function(event, context) {
   };
 
   // メッセージを投稿します
-  var taskPostMessage = function(message) {
-    return new Promise(function(resolve, reject) {
-      var body = JSON.stringify({
-        channel: SLACK_CHANNEL,
-        text: message
-      });
-      var options = URL.parse(SLACK_ENDPOINT);
-      options.method = 'POST';
-      options.headers = {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-      };
-      var request = HTTPS.request(options, function(response) {
-          var chunks = [];
-          response.setEncoding('utf8');
-          response.on('data', function(chunk) {
-            chunks.push(chunk);
-          });
-          response.on('end', function() {
-              var body = chunks.join('');
-              if (response.statusCode < 400) {
-                return resolve();
-              } else {
-                return reject(new Error(body));
-              }
-          });
-      });
-      request.write(body);
-      request.end();
-    });
-  };
+  var taskPostMessage = require('./slack.js');
 
 
   // メイン処理
   var main = function() {
     taskGetBucketsSize().then(
       function(buckets) {
-        var message = getMessage(buckets);
-        taskPostMessage(message).then(
+        var endpoint = SLACK_ENDPOINT;
+        var channel  = SLACK_CHANNEL;
+        var message  = getMessage(buckets);
+        taskPostMessage(endpoint, channel, message).then(
           function(result) {
             return context.succeed({
               "status": 200,
