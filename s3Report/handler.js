@@ -14,6 +14,11 @@ module.exports.handler = function(event, context) {
           return reject(new Error(err.message));
         }
         var methods = [];
+        data['Buckets'].sort(function(a, b) {
+          if (a['Name'] < b['Name']) return -1;
+          if (a['Name'] > b['Name']) return 1;
+          return 0;
+        });
         data['Buckets'].forEach(function(bucket) {
           methods.push(taskGetObjectsSize(s3, bucket));
         });
