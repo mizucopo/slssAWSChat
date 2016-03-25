@@ -1,13 +1,13 @@
 {
   "name": "slssAWSChat",
-  "version": "0.0.1",
-  "description": "A Serverless Project and its Serverless Plugin dependencies.",
-  "author": "me",
+  "version": "1.0.0",
+  "description": "Serverless Framework を使用したAWSの使用状況をSlackへ投稿するシステム",
+  "author": "mizu <mizu.copo@gmail.com>",
   "license": "MIT",
   "private": false,
   "repository": {
     "type": "git",
-    "url": "git://github.com/"
+    "url": "git@github.com:mizucopo/slssAWSChat.git"
   },
   "dependencies": {
     "aws-sdk": "^2.2.46"
