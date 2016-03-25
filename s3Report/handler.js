@@ -1,8 +1,5 @@
 'use strict';
 
-var SLACK_CHANNEL  = "";
-var SLACK_ENDPOINT = "";
-
 var AWS = require('aws-sdk');
 var Promise = require('bluebird');
 
@@ -85,8 +82,8 @@ module.exports.handler = function(event, context) {
   var main = function() {
     taskGetBucketsSize().then(
       function(buckets) {
-        var endpoint = SLACK_ENDPOINT;
-        var channel  = SLACK_CHANNEL;
+        var endpoint = process.env.SLACK_ENDPOINT;
+        var channel  = process.env.SLACK_CHANNEL;
         var message  = getMessage(buckets);
         taskPostMessage(endpoint, channel, message).then(
           function(result) {

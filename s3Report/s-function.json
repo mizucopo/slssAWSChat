@@ -25,7 +25,9 @@
   "environment": {
     "SERVERLESS_PROJECT": "slssAWSChat",
     "SERVERLESS_STAGE": "${stage}",
-    "SERVERLESS_REGION": "${region}"
+    "SERVERLESS_REGION": "${region}",
+    "SLACK_CHANNEL": "",
+    "SLACK_ENDPOINT": ""
   },
   "vpc": {
     "securityGroupIds": [],
