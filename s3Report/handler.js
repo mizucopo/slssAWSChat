@@ -16,15 +16,14 @@ module.exports.handler = function(event, context) {
       var s3 = new AWS.S3({});
       s3.listBuckets(function(err, data) {
         if (err) {
-          reject(new Error(err.message));
-          return ;
+          return reject(new Error(err.message));
         }
         var methods = [];
         data['Buckets'].forEach(function(bucket) {
           methods.push(taskGetObjectsSize(s3, bucket));
         });
         Promise.all(methods).then(function(values) {
-          resolve(values);
+          return resolve(values);
         });
       });
     });
@@ -38,8 +37,7 @@ module.exports.handler = function(event, context) {
       };
       s3.listObjects(params, function(err, data) {
         if (err) {
-          reject(new Error(err.message));
-          return ;
+          return reject(new Error(err.message));
         }
         var results = {
           Bucket: bucket['Name'],
@@ -50,7 +48,7 @@ module.exports.handler = function(event, context) {
           results['Count']++;
           results['Size'] += content['Size'];
         });
-        resolve(results);
+        return resolve(results);
       });
     });
   };
@@ -105,9 +103,9 @@ module.exports.handler = function(event, context) {
           response.on('end', function() {
               var body = chunks.join('');
               if (response.statusCode < 400) {
-                resolve();
+                return resolve();
               } else {
-                reject(new Error(body));
+                return reject(new Error(body));
               }
           });
       });
@@ -118,23 +116,24 @@ module.exports.handler = function(event, context) {
 
 
   // メイン処理
-  taskGetBucketsSize().then(
-    function(buckets) {
-      var message = getMessage(buckets);
-      taskPostMessage(message).then(
-        function(result) {
-          return context.succeed({
-            "status": 200,
-            "message": "succeed"
-          });
-        },
-        function(err) {
-          return context.fail(err);
-        }
-      );
-    },
-    function(err) {
-      return context.fail(err);
-    }
-  );
+  var main = function() {
+    taskGetBucketsSize().then(
+      function(buckets) {
+        var message = getMessage(buckets);
+        taskPostMessage(message).then(
+          function(result) {
+            return context.succeed({
+              "status": 200,
+              "message": "succeed"
+            });
+          }
+        );
+      },
+      function(err) {
+        return context.fail(err);
+      }
+    );
+  };
+
+  main();
 };
