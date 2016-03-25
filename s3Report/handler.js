@@ -1,6 +1,6 @@
 'use strict';
 
-var SLACK_CHANNEL = "";
+var SLACK_CHANNEL  = "";
 var SLACK_ENDPOINT = "";
 
 var AWS = require('aws-sdk');
