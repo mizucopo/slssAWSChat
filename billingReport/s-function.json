@@ -1,0 +1,36 @@
+{
+  "name": "billingReport",
+  "runtime": "nodejs",
+  "description": "Serverless Lambda function for project: slssAWSChat",
+  "customName": false,
+  "customRole": false,
+  "handler": "handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "authorizer": {},
+  "custom": {
+    "excludePatterns": []
+  },
+  "endpoints": [],
+  "events": [
+    {
+      "name": "daily",
+      "type": "schedule",
+      "config": {
+        "enabled": true,
+        "schedule": "cron(0 15 * * ? *)"
+      }
+    }
+  ],
+  "environment": {
+    "SERVERLESS_PROJECT": "slssAWSChat",
+    "SERVERLESS_STAGE": "${stage}",
+    "SERVERLESS_REGION": "${region}",
+    "SLACK_CHANNEL": "",
+    "SLACK_ENDPOINT": ""
+  },
+  "vpc": {
+    "securityGroupIds": [],
+    "subnetIds": []
+  }
+}
