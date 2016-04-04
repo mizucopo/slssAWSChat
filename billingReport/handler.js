@@ -90,7 +90,10 @@ module.exports.handler = function(event, context) {
         }
         var datapoints = data['Datapoints'];
         if (datapoints.length < 1) {
-          return reject(new Error('here is no billing info.'));
+          return resolve({
+            Service: service,
+            Value: 0
+          });
         }
         var latestData = datapoints[datapoints.length - 1];
         return resolve({
