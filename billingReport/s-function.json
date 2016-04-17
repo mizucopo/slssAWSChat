@@ -1,6 +1,6 @@
 {
   "name": "billingReport",
-  "runtime": "nodejs",
+  "runtime": "nodejs47",
   "description": "Serverless Lambda function for project: slssAWSChat",
   "customName": false,
   "customRole": false,
