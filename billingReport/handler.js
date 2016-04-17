@@ -107,7 +107,8 @@ module.exports.handler = function(event, context) {
   // 投稿するメッセージを取得
   var getMessage = function(values) {
     var numberFormat = require('./number_format.js');
-    var message = ">>>*Billing*: $" + numberFormat(values[0]['Value']) + "\n\n";
+    var message = "--------------------------------\n"
+                + "*Billing*: $" + numberFormat(values[0]['Value']) + "\n\n";
     values[1].forEach(function(service) {
       message += ">*" + service['Service'] + "*: $" + numberFormat(service['Value']) + "\n\n";
     })
