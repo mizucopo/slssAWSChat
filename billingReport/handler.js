@@ -1,9 +1,8 @@
 'use strict';
 
 var AWS = require('aws-sdk');
-var Promise = require('bluebird');
 
-module.exports.handler = function(event, context) {
+module.exports.handler = function(event, context, cb) {
 
   // 全体の金額を取得
   var taskGetAllBilling = function(cloudwatch, enddate) {
@@ -135,7 +134,7 @@ module.exports.handler = function(event, context) {
         var message  = getMessage(values);
         taskPostMessage(endpoint, channel, message).then(
           function(result) {
-            return context.succeed({
+            return cb(null, {
               "status": 200,
               "message": "succeed"
             });
@@ -143,7 +142,7 @@ module.exports.handler = function(event, context) {
         );
       },
       function(err) {
-        return context.fail(err);
+        return cb(err, null);
       }
     );
   };
