@@ -71,7 +71,8 @@ module.exports.handler = function(event, context) {
               +  ">Size: "  + numberFormat(Math.ceil(bucket['Size'] / megaSize)) + " MB\n\n";
     })
 
-    message = ">>>*All Buckets*:\n"
+    message = "--------------------------------\n"
+            + "*All Buckets*:\n"
             + "Count: " + numberFormat(objectsCount) + "\n"
             + "Size: "  + numberFormat(Math.ceil(objectsSize / megaSize)) + " MB\n\n"
             + message;
