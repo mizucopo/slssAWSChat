@@ -2,7 +2,7 @@
 
 var AWS = require('aws-sdk');
 
-module.exports.handler = function(event, context) {
+module.exports.handler = function(event, context, cb) {
 
   // バケット毎のファイルサイズを取得
   var taskGetBucketsSize = function() {
@@ -92,7 +92,7 @@ module.exports.handler = function(event, context) {
         var message  = getMessage(buckets);
         taskPostMessage(endpoint, channel, message).then(
           function(result) {
-            return context.succeed({
+            return cb(null, {
               "status": 200,
               "message": "succeed"
             });
@@ -100,7 +100,7 @@ module.exports.handler = function(event, context) {
         );
       },
       function(err) {
-        return context.fail(err);
+        return cb(err, null);
       }
     );
   };

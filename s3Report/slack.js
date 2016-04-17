@@ -1,7 +1,5 @@
 // Slackにメッセージを投稿します
 module.exports = function(endpoint, channel, message) {
-  var Promise = require('bluebird');
-
   return new Promise(function(resolve, reject) {
     var URL = require('url');
     var HTTPS = require('https');
