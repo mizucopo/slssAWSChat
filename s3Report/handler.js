@@ -12,6 +12,7 @@ module.exports.handler = function(event, context, cb) {
         if (err) {
           return reject(new Error(err.message));
         }
+        var cloudwatch = new AWS.CloudWatch({region: 'us-east-1'});
         var methods = [];
         data['Buckets'].sort(function(a, b) {
           if (a['Name'] < b['Name']) return -1;
@@ -19,7 +20,7 @@ module.exports.handler = function(event, context, cb) {
           return 0;
         });
         data['Buckets'].forEach(function(bucket) {
-          methods.push(taskGetObjectsSize(s3, bucket));
+          methods.push(taskGetObjectsSize(cloudwatch, bucket));
         });
         Promise.all(methods).then(function(values) {
           return resolve(values);
@@ -29,25 +30,46 @@ module.exports.handler = function(event, context, cb) {
   };
 
   // バケットのファイルサイズを取得
-  var taskGetObjectsSize = function(s3, bucket) {
+  var taskGetObjectsSize = function(cloudwatch, bucket) {
     return new Promise(function(resolve, reject) {
+      var startdate = new Date();
+      var enddate   = new Date();
+      startdate.setDate(startdate.getDate() - 1);
+
       var params = {
-        Bucket: bucket['Name']
+        MetricName: 'BucketSizeBytes',
+        Namespace: 'AWS/S3',
+        Period: 300,
+        StartTime: startdate,
+        EndTime: enddate,
+        Statistics: ['Maximum'],
+        Dimensions: [
+          {
+            "Name": "BucketName",
+            "Value": bucket['Name']
+          },
+          {
+            "Name": "StorageType",
+            "Value": "StandardStorage"
+          }
+        ]
       };
-      s3.listObjects(params, function(err, data) {
+      cloudwatch.getMetricStatistics(params, function(err, data) {
         if (err) {
           return reject(new Error(err.message));
         }
-        var results = {
+        var datapoints = data['Datapoints'];
+        if (datapoints.length < 1) {
+          return resolve({
+            Bucket: bucket['Name'],
+            Size:   0
+          });
+        }
+        var latestData = datapoints[datapoints.length - 1];
+        return resolve({
           Bucket: bucket['Name'],
-          Count:  0,
-          Size:   0,
-        };
-        data['Contents'].forEach(function(content) {
-          results['Count']++;
-          results['Size'] += content['Size'];
+          Size:   latestData['Maximum']
         });
-        return resolve(results);
       });
     });
   };
@@ -57,22 +79,18 @@ module.exports.handler = function(event, context, cb) {
     var numberFormat = require('./number_format.js');
 
     var message = "";
-    var objectsCount = 0;
-    var objectsSize  = 0;
+    var objectsSize = 0;
     var megaSize = 1024 * 1024;
 
     buckets.forEach(function(bucket) {
-      objectsCount += bucket['Count'];
       objectsSize  += bucket['Size'];
 
       message += ">*" + bucket['Bucket'] + "*:\n"
-              +  ">Count: " + numberFormat(bucket['Count']) + "\n"
               +  ">Size: "  + numberFormat(Math.ceil(bucket['Size'] / megaSize)) + " MB\n\n";
     })
 
     message = "--------------------------------\n"
             + "*All Buckets*:\n"
-            + "Count: " + numberFormat(objectsCount) + "\n"
             + "Size: "  + numberFormat(Math.ceil(objectsSize / megaSize)) + " MB\n\n"
             + message;
 
